@@ -2,6 +2,51 @@
 
 A fast CLI tool to sync node and service definitions to Consul Catalog using Transaction API.
 
+## Overview
+
+This tool bridges the gap between your existing infrastructure definitions and Consul's API structure. Instead of forcing you to adapt your YAML structures to match Consul's specific format, it allows you to:
+
+1. **Keep your existing YAML structure** - Define nodes and services in a format that makes sense for your organization
+2. **Use mapping rules** - Transform your structure to Consul's format using simple templating rules
+3. **Apply changes quickly** - Direct use of Consul's Transaction API for fast, atomic updates
+
+### Why is this needed?
+
+When managing infrastructure with Consul, you often face a dilemma:
+
+- Your YAML data should reflect your infrastructure's logical organization, not Consul's API structure
+- Different teams may have different data models that work best for their domains
+- Consul requires a specific JSON format for its Catalog API
+- Being forced to adopt Consul's data structure pollutes your configuration with implementation details
+
+This tool solves that by providing a transformation layer. You define the mapping once, and then your team can continue using familiar YAML structures while still leveraging Consul's powerful service discovery features.
+
+### Example transformation
+
+Your YAML structure:
+```yaml
+web-server-01:
+  ip: 10.0.1.5
+  type: web
+  location: rack-3
+```
+
+Gets transformed to Consul's format:
+```json
+{
+  "Node": {
+    "Node": "web-server-01",
+    "Address": "10.0.1.5",
+    "Meta": {
+      "type": "web",
+      "location": "rack-3"
+    }
+  }
+}
+```
+
+The mapping rules define how this transformation happens, keeping your infrastructure definitions independent from Consul's implementation details.
+
 ## Features
 
 - **Fast**: Direct use of Consul Transaction API for bulk operations
