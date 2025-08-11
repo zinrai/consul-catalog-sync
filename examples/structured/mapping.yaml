@@ -1,0 +1,56 @@
+# Mapping configuration for structured vars example
+# Shows how to handle different field names across files
+
+operations:
+  # Register node - handles different field names
+  - type: Node
+    verb: set
+    template:
+      Node: "{{ .Key }}"
+      # Use default to handle different field names
+      Address: "{{ .Value.attr2 | default .Value.location | default .Value.address }}"
+      Datacenter: "{{ .Datacenter }}"
+      Meta:
+        # Optional metadata
+        category: "{{ .Value.attr3 | default .Value.type | default \"unknown\" }}"
+
+  # Register primary service (conditional)
+  - type: Service
+    verb: set
+    # Check multiple possible field names
+    condition: "{{ .Value.attr1 | default .Value.primary | default .Value.essential }}"
+    template:
+      Node: "{{ .Key }}"
+      Service:
+        ID: "{{ .Value.attr1 | default .Value.primary | default .Value.essential }}"
+        Service: "{{ .Value.attr1 | default .Value.primary | default .Value.essential }}"
+        Tags:
+          - "{{ .Value.attr3 | default .Value.type | default \"generic\" }}"
+
+  # Register metadata items (if metadata array exists)
+  - type: Service
+    verb: set
+    foreach: "{{ .Value.metadata }}"
+    template:
+      Node: "{{ .Key }}"
+      Service:
+        ID: "{{ .Item.sub1 }}"
+        Service: "{{ .Value.attr1 }}-metadata"
+        Port: "{{ .Item.sub2 }}"
+        Tags:
+          - "metadata"
+          - "{{ .Item.sub1 }}"
+
+  # Register extras (different field name, different structure)
+  - type: Service
+    verb: set
+    foreach: "{{ .Value.extras }}"
+    template:
+      Node: "{{ .Key }}"
+      Service:
+        ID: "{{ .Item.name }}"
+        Service: "{{ .Value.primary }}-extra"
+        Port: "{{ .Item.value }}"
+        Tags:
+          - "extra"
+          - "{{ .Item.name }}"

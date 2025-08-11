@@ -1,0 +1,20 @@
+# Example items in group2
+# Different structure to show flexibility
+
+item-b-001:
+  primary: different-value
+  location: 10.1.0.1
+  type: category-2
+  extras:
+    - name: extra1
+      value: 2001
+    - name: extra2
+      value: 2002
+
+item-b-002:
+  primary: another-value
+  location: 10.1.0.2
+  type: category-2
+  extras:
+    - name: extra3
+      value: 2003

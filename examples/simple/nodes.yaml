@@ -1,0 +1,37 @@
+# Example nodes definition (vars)
+# This demonstrates the general structure of a vars file
+# Actual field names and structure will vary based on your organization
+
+# Basic node example
+node-001:
+  field1: value1
+  field2: 10.0.0.1
+  field3: type-a
+  field4: location-a
+  nested_field:
+    - item1: value
+      item2: 8080
+    - item1: another-value
+      item2: 9090
+
+node-002:
+  field1: value2
+  field2: 10.0.0.2
+  field3: type-b
+  field4: location-b
+  # Some nodes may have optional fields
+
+# Minimal node example
+node-003:
+  field1: value3
+  field2: 10.0.0.3
+  field3: type-c
+
+# Node with different structure
+special-node:
+  required_field: some-value
+  ip_field: 10.0.1.1
+  category: special
+  extra_data:
+    key1: data1
+    key2: data2

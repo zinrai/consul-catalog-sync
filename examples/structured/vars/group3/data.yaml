@@ -1,0 +1,14 @@
+# Example minimal configuration
+# Shows that not all fields are required
+
+simple-item-001:
+  essential: basic-service
+  address: 10.2.0.1
+
+simple-item-002:
+  essential: basic-service
+  address: 10.2.0.2
+
+simple-item-003:
+  essential: another-service
+  address: 10.2.0.3

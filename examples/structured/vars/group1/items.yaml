@@ -1,0 +1,26 @@
+# Example items in group1
+# These represent generic node definitions
+
+item-a-001:
+  attr1: value-a
+  attr2: 10.0.0.1
+  attr3: category-1
+  metadata:
+    - sub1: foo
+      sub2: 1001
+    - sub1: bar
+      sub2: 1002
+
+item-a-002:
+  attr1: value-b
+  attr2: 10.0.0.2
+  attr3: category-1
+  metadata:
+    - sub1: baz
+      sub2: 1003
+
+item-a-003:
+  attr1: value-c
+  attr2: 10.0.0.3
+  attr3: category-2
+  # This item has no metadata array

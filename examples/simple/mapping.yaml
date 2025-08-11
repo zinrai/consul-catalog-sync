@@ -1,0 +1,43 @@
+# Mapping rules for transforming vars to Consul operations
+# This example shows how to map your vars structure to Consul API
+# Adjust field names to match your actual vars structure
+
+operations:
+  # Example: Register node
+  - type: Node
+    verb: set
+    template:
+      Node: "{{ .Key }}"                    # Use the key as node name
+      Address: "{{ .Value.field2 }}"        # Map your IP address field
+      Datacenter: "{{ .Datacenter }}"       # From command line
+      Meta:
+        # Map any metadata fields you need
+        type: "{{ .Value.field3 }}"
+        location: "{{ .Value.field4 }}"
+
+  # Example: Register primary service (conditional)
+  - type: Service
+    verb: set
+    condition: "{{ .Value.field1 }}"        # Only if this field exists
+    template:
+      Node: "{{ .Key }}"
+      Service:
+        ID: "{{ .Value.field1 }}"
+        Service: "{{ .Value.field1 }}"
+        Tags:
+          - "{{ .Value.field3 }}"
+        Meta:
+          type: "{{ .Value.field3 }}"
+
+  # Example: Register additional items (with iteration)
+  - type: Service
+    verb: set
+    foreach: "{{ .Value.nested_field }}"    # Iterate if this field exists
+    template:
+      Node: "{{ .Key }}"
+      Service:
+        ID: "{{ .Item.item1 }}"
+        Service: "{{ .Value.field1 }}"
+        Port: "{{ .Item.item2 }}"
+        Tags:
+          - "{{ .Item.item1 }}"
