@@ -191,78 +191,44 @@ func processForeach(rule OperationRule, ctx ExecutionContext) ([]map[string]inte
 	return operations, nil
 }
 
+// evaluateForeach resolves a foreach expression to the list it names.
+//
+// Only a single-level {{ .Value.<field> }} reference is supported: the
+// expression names one field of the node's vars, whose value must be a list.
+// An absent field yields no items (the rule is skipped), matching vars where
+// the array is genuinely optional.
 func evaluateForeach(expr string, ctx ExecutionContext) ([]interface{}, error) {
-	// Use Go template to evaluate the expression
-	tmpl, err := template.New("foreach").Parse(expr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid foreach expression: %w", err)
+	field := parseFieldPath(expr)
+	if field == "" {
+		return nil, fmt.Errorf("unsupported foreach expression %q: expected {{ .Value.<field> }}", expr)
 	}
 
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, ctx); err != nil {
-		// The field might not exist, which is ok
+	value, ok := ctx.Value[field]
+	if !ok {
 		return nil, nil
 	}
 
-	result := buf.String()
-	if result == "" || result == "<no value>" {
-		return nil, nil
+	items, ok := value.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("foreach field %q is not a list", field)
 	}
 
-	// The template should have returned a reference to an array
-	// We need to actually get the array from the context
-	// This is a simplified approach - in production you might want
-	// to use a more sophisticated expression evaluator
-
-	// Try to get the array directly from the Value map
-	// Parse the expression to extract the field path
-	fieldPath := parseFieldPath(expr)
-	if fieldPath != "" {
-		if arr := getNestedField(ctx.Value, fieldPath); arr != nil {
-			if items, ok := arr.([]interface{}); ok {
-				return items, nil
-			}
-		}
-	}
-
-	// Fallback: try to parse as JSON
-	var items []interface{}
-	if err := json.Unmarshal([]byte(result), &items); err == nil {
-		return items, nil
-	}
-
-	return nil, nil
+	return items, nil
 }
 
+// parseFieldPath extracts the field name from a {{ .Value.<field> }} expression,
+// returning "" for anything that is not a single .Value reference.
 func parseFieldPath(expr string) string {
-	// Extract field path from template expression
-	// {{ .Value.fieldname }} -> fieldname
-	// This is a simple regex-based approach
-
-	// Remove template delimiters and whitespace
 	expr = strings.TrimSpace(expr)
 	expr = strings.TrimPrefix(expr, "{{")
 	expr = strings.TrimSuffix(expr, "}}")
 	expr = strings.TrimSpace(expr)
 
-	// Check if it matches .Value.something pattern
 	if strings.HasPrefix(expr, ".Value.") {
 		return strings.TrimPrefix(expr, ".Value.")
 	}
 
 	return ""
-}
-
-func getNestedField(data map[string]interface{}, path string) interface{} {
-	// Support simple field access (no deep nesting for now)
-	// "field1" -> data["field1"]
-	// Could be extended to support "field1.field2" in the future
-
-	if value, ok := data[path]; ok {
-		return value
-	}
-
-	return nil
 }
 
 func processTemplate(templateData interface{}, ctx ExecutionContext) (interface{}, error) {
