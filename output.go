@@ -105,11 +105,3 @@ func printOperationsDetail(operations []map[string]interface{}) {
 		fmt.Printf("\n... and %d more operations\n", len(operations)-maxDisplay)
 	}
 }
-
-// min returns the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
