@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 )
@@ -20,24 +19,29 @@ type Config struct {
 }
 
 func parseConfig() Config {
-	config := parseFlags()
+	config, showVersion := parseFlags()
 
-	// Handle version and help flags
-	if handleSpecialFlags(config) {
+	if showVersion {
+		fmt.Printf("%s version %s\n", binaryName, version)
+		fmt.Printf("commit: %s\n", commit)
+		fmt.Printf("date: %s\n", date)
 		os.Exit(0)
 	}
 
 	// Validate required flags
 	if !validateRequiredFlags(config) {
-		showUsage()
+		flag.Usage()
 		os.Exit(1)
 	}
 
 	return config
 }
 
-func parseFlags() Config {
+func parseFlags() (Config, bool) {
 	var config Config
+	var showVersion bool
+
+	flag.Usage = showUsage
 
 	flag.StringVar(&config.VarsPath, "vars", "", "vars file or directory path (required)")
 	flag.StringVar(&config.MappingFile, "mapping", "", "mapping file path (required)")
@@ -46,26 +50,11 @@ func parseFlags() Config {
 	flag.BoolVar(&config.DryRun, "dry-run", false, "show operations without executing")
 	flag.BoolVar(&config.Verbose, "verbose", false, "verbose output")
 	flag.BoolVar(&config.Payload, "payload", false, "output JSON payload that would be sent to Consul API (NDJSON format)")
+	flag.BoolVar(&showVersion, "version", false, "show version")
 
 	flag.Parse()
 
-	return config
-}
-
-func handleSpecialFlags(config Config) bool {
-	// Check for version flag
-	if len(os.Args) > 1 && os.Args[1] == "-version" {
-		fmt.Printf("%s version %s\n", binaryName, version)
-		return true
-	}
-
-	// Check for help flag
-	if len(os.Args) > 1 && os.Args[1] == "-help" {
-		showUsage()
-		return true
-	}
-
-	return false
+	return config, showVersion
 }
 
 func validateRequiredFlags(config Config) bool {
@@ -103,15 +92,12 @@ func showUsage() {
 }
 
 func setupLogging(config Config) {
-	// Suppress INFO logs when outputting payload (they would corrupt JSON output)
+	// Route all logs to stderr in payload mode so they never corrupt the
+	// NDJSON written to stdout.
 	if config.Payload {
-		// Set log output to stderr for warnings and errors only
 		log.SetOutput(os.Stderr)
 		log.SetPrefix("[WARN/ERROR] ")
 		log.SetFlags(0)
-
-		// Create a custom logger that filters INFO messages
-		// For now, we'll just redirect all logs to stderr
 		return
 	}
 
@@ -119,32 +105,5 @@ func setupLogging(config Config) {
 		log.SetFlags(log.Ltime | log.Lmicroseconds)
 	} else {
 		log.SetFlags(0)
-	}
-}
-
-// Helper function to suppress stdout logs when in payload mode
-func logInfo(format string, args ...interface{}) {
-	// This can be called instead of log.Printf for INFO level logs
-	// It will be suppressed in payload mode
-	if !isPayloadMode() {
-		log.Printf("[INFO] "+format, args...)
-	}
-}
-
-func isPayloadMode() bool {
-	// Check if we're in payload mode by checking flags
-	for _, arg := range os.Args {
-		if arg == "-payload" || arg == "--payload" {
-			return true
-		}
-	}
-	return false
-}
-
-// Disable stdout for INFO logs when in payload mode
-func init() {
-	if isPayloadMode() {
-		// Custom log handling for payload mode
-		log.SetOutput(io.Discard)
 	}
 }

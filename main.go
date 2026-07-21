@@ -4,8 +4,12 @@ import (
 	"log"
 )
 
+// version, commit and date are injected at release time by goreleaser
+// via -ldflags -X main.<name> (see .goreleaser.yaml).
 var (
-	version    = "0.1.0"
+	version    = "dev"
+	commit     = "none"
+	date       = "unknown"
 	binaryName = "consul-catalog-sync"
 )
 
