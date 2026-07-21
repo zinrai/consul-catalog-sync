@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -98,6 +99,7 @@ func sendRequest(client *http.Client, consulAddr string, payload []byte) (*http.
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	setConsulToken(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -105,6 +107,14 @@ func sendRequest(client *http.Client, consulAddr string, payload []byte) (*http.
 	}
 
 	return resp, nil
+}
+
+// setConsulToken adds the ACL token from CONSUL_HTTP_TOKEN when set, matching
+// the consul CLI convention (env only, never a flag, to keep it out of argv).
+func setConsulToken(req *http.Request) {
+	if token := os.Getenv("CONSUL_HTTP_TOKEN"); token != "" {
+		req.Header.Set("X-Consul-Token", token)
+	}
 }
 
 func processResponse(resp *http.Response, verbose bool) error {

@@ -109,6 +109,14 @@ $ consul-catalog-sync -vars vars/ -mapping mapping.yaml -payload | jq '.'
 - `-help`: Show help message
 - `-version`: Show version
 
+## Authentication
+
+The token is read from the `CONSUL_HTTP_TOKEN` environment variable, following the `consul` CLI convention, rather than a flag so it does not leak into process listings or shell history. It needs `node:write` and `service:write` on a cluster that enforces ACLs.
+
+```bash
+$ CONSUL_HTTP_TOKEN=<token> consul-catalog-sync -vars vars/ -mapping mapping.yaml
+```
+
 ## File formats
 
 See `examples/` directory for vars and mapping file formats.
