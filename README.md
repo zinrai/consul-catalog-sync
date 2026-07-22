@@ -54,12 +54,6 @@ The mapping rules define how this transformation happens, keeping your infrastru
 - **Safe**: Dry-run mode to preview changes
 - **Debuggable**: Output JSON payload for inspection
 
-## Installation
-
-```bash
-$ go install github.com/example/consul-catalog-sync@latest
-```
-
 ## Usage
 
 ### Basic usage
